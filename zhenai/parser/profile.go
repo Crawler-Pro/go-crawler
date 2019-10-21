@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"go-crawler-distributed/config"
 	"go-crawler/engine"
 	"go-crawler/model"
 	"regexp"
@@ -22,7 +23,9 @@ var carReg = regexp.MustCompile(`<div class="m-btn pink" data-v-8b1eac0c>([^<]+)
 
 var commonReg = regexp.MustCompile(`<div class="m-btn purple" data-v-8b1eac0c>([^<]+)</div>`)
 
-func ParseProfile(contents []byte, name string) engine.ParseResult {
+var idUrlReg = regexp.MustCompile(`https://album.zhenai.com/u/([\d]+)`)
+
+func ParseProfile(contents []byte, url string, name string) engine.ParseResult {
 	profile := model.Profile{}
 	profile.Name = name
 	arg, err := strconv.Atoi(extractSubString(contents, argReg))
@@ -51,8 +54,16 @@ func ParseProfile(contents []byte, name string) engine.ParseResult {
 	profile.Car = extractSubString(contents, carReg)
 
 	result := engine.ParseResult{
-		Items: []interface{}{profile},
+		Items: []engine.Item{
+			{
+				Url:     url,
+				Type:    "zhenai",
+				Id:      extractSubString([]byte(url), idUrlReg),
+				Payload: profile,
+			},
+		},
 	}
+
 	return result
 }
 
@@ -72,4 +83,24 @@ func extractAllString(contents []byte, re *regexp.Regexp, index int) string {
 		return matchs[index][1]
 	}
 	return ""
+}
+
+type ProfileParser struct {
+	userName string
+}
+
+func (p *ProfileParser) Parse(contents []byte, url string) engine.ParseResult {
+	return ParseProfile(contents, url, p.userName)
+
+}
+
+func (p *ProfileParser) Serialize() (name string, args interface{}) {
+	//return "ProfileParser", p.userName
+	return config.ParseProfile, p.userName //
+}
+
+func NewProfileParser(name string) *ProfileParser {
+	return &ProfileParser{
+		userName: name,
+	}
 }

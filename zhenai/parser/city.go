@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"go-crawler-distributed/config"
 	"go-crawler/engine"
 	"log"
 	"regexp"
@@ -11,7 +12,7 @@ var (
 	cityURLReg = regexp.MustCompile(`href="(http://www.zhenai.com/zhenghun/shanghai/[^"]+)"`)
 )
 
-func ParseCity(contents []byte) engine.ParseResult {
+func ParseCity(contents []byte, _ string) engine.ParseResult {
 	matches := profileReg.FindAllSubmatch(contents, -1)
 
 	result := engine.ParseResult{}
@@ -20,18 +21,17 @@ func ParseCity(contents []byte) engine.ParseResult {
 		log.Printf("Analysis of the user: %v", name)
 		//result.Items = append(result.Items, "User "+name)
 		result.Requests = append(result.Requests, engine.Request{
-			Url: string(m[1]),
-			ParserFunc: func(c []byte) engine.ParseResult {
-				return ParseProfile(c, name)
-			},
+			Url:    string(m[1]),
+			Parser: NewProfileParser(name),
 		})
 	}
 
 	matches = cityURLReg.FindAllSubmatch(contents, -1)
 	for _, m := range matches {
 		result.Requests = append(result.Requests, engine.Request{
-			Url:        string(m[1]),
-			ParserFunc: ParseCity,
+			Url: string(m[1]),
+			//ParserFunc:ParseCity,
+			Parser: engine.NewFuncParser(ParseCity, config.ParseCity),
 		})
 	}
 	return result
