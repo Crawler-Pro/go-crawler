@@ -3,6 +3,7 @@ package fetcher
 import (
 	"bufio"
 	"fmt"
+	"go-crawler-distributed/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,11 +16,12 @@ import (
 	"golang.org/x/text/transform"
 )
 
-var rateLimiter = time.Tick(10 * time.Millisecond)
+var rateLimiter = time.Tick(time.Second / config.Qps)
 
 // Fetch web data
 func Fetch(url string) ([]byte, error) {
 	<-rateLimiter
+	log.Printf("Fetching url %s", url)
 	client := http.Client{}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
