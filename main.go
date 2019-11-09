@@ -1,33 +1,45 @@
 package main
 
 import (
-	"go-crawler/engine"
-	"go-crawler/persist"
-	"go-crawler/scheduler"
-	"go-crawler/zhenai/parser"
+	"bufio"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+
+	"golang.org/x/net/html/charset"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/transform"
 )
 
 func main() {
-	itemChan, err := persist.ItemSaver("dating_profile")
+	resp, err := http.Get("http://www.zhenai.com/zhenghun")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: status code", resp.StatusCode)
+		return
+	}
+
+	e := determineEncoding(resp.Body)
+	utf8Reader := transform.NewReader(resp.Body, e.NewDecoder())
+	all, err := ioutil.ReadAll(utf8Reader)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", all)
+}
+
+// determineEncoding 猜测页面字符集编码
+func determineEncoding(r io.Reader) encoding.Encoding {
+	bytes, err := bufio.NewReader(r).Peek(1024)
 	if err != nil {
 		panic(err)
 	}
 
-	e := engine.ConcurrentEngine{
-		Scheduler:        &scheduler.QueuedScheduler{},
-		WorkerCount:      10,
-		ItemChan:         itemChan,
-		RequestProcessor: engine.Worker,
-	}
-
-	e.Run(engine.Request{
-		Url: "http://www.zhenai.com/zhenghun",
-		Parser: engine.NewFuncParser(
-			parser.ParseCityList, "ParseCityList"),
-	})
-
-	// e.Run(engine.Request{
-	// 	Url:        "http://www.zhenai.com/zhenghun/shanghai",
-	// 	ParserFunc: parser.ParseCity,
-	// })
+	e, _, _ := charset.DetermineEncoding(bytes, "")
+	return e
 }
