@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
@@ -13,8 +14,11 @@ import (
 	"golang.org/x/text/transform"
 )
 
-// Fetcher 获取传入URL的内容
+var rateLimiter = time.Tick(10 * time.Millisecond)
+
+// Fetch 获取传入URL的内容
 func Fetch(url string) ([]byte, error) {
+	<-rateLimiter
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
