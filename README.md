@@ -36,7 +36,10 @@ gopkg.in/olivere/elastic.v5 | elastic客户端
 ![Scheduler](./doc/Scheduler1.png)
 
 缺点：
-- 存在循环等待的问题
+- 存在循环等待的问题(所有worker和request)
 
 ## Scheduler实现二：并行分发Request
 ![Scheduler](./doc/Scheduler2.png)
+
+## Scheduler实现三：Request队列和Worker队列
+![Scheduler](./doc/Scheduler3.png)
