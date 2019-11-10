@@ -25,5 +25,18 @@ gopkg.in/olivere/elastic.v5 | elastic客户端
 - 输入：UTF-8编码的文本
 - 输出：Request{URL, 对应Parser}列表，Item列表
 
-## 爬虫架构
+## 架构图
 ![单任务版架构图](./doc/Architecture-Diagram-Single.png)
+
+# 并发版
+## 架构图
+![并发版架构图](./doc/Architecture-Diagram-Concurrent.png)
+
+## Scheduler实现一：所有Worker公用一个输入
+![Scheduler](./doc/Scheduler1.png)
+
+缺点：
+- 存在循环等待的问题
+
+## Scheduler实现二：并行分发Request
+![Scheduler](./doc/Scheduler2.png)
