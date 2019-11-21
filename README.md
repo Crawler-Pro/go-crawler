@@ -43,3 +43,12 @@ gopkg.in/olivere/elastic.v5 | elastic客户端
 
 ## Scheduler实现三：Request队列和Worker队列
 ![Scheduler](./doc/Scheduler3.png)
+
+# Items存储
+## 抽象出Task概念
+- FetchTask，PersistTask共用一个Engine，Scheduler
+- 需要创建FetchWorker，PersistWorker
+  
+## 为每个Item创建goroutine，提交给ItemSaver
+- ItemSaver的速度比Fetcher快
+- 类似SimpleScheduler方法即可
